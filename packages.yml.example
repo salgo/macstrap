@@ -1,0 +1,24 @@
+casks:
+  - sublime-text
+  - google-chrome
+  - virtualbox
+  - vagrant
+  - slack
+  - skype
+  - hipchat
+  - mou
+  - spotify
+  - vagrant-manager
+  - packer
+  - terraform
+  - google-drive
+  - dropbox
+packages:
+  - ffmpeg
+pips:
+  - awscli
+vagrant-plugins:
+  - vagrant-butcher
+  - vagrant-cachier
+  - vagrant-berkshelf
+  - vagrant-omnibus
