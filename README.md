@@ -1,6 +1,6 @@
 #Macstrap
 
-My own simpe Chef based take on bootstrapping a Mac.
+My own simple Chef based take on bootstrapping a Mac.
 
 ##Get started
 
