@@ -1,0 +1,132 @@
+#!/bin/bash
+
+# Copyright (C) 2014 Andy Gale
+#
+# Licensed under the Apache License, Version 2.0 (the "License"); you may
+# not use this file except in compliance with the License. You may obtain
+# a copy of the License at
+#
+#    http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+set -e
+source "bash_lib/colours.sh"
+
+echo 
+coloured_msg $txtbld "Mac workstation bootstrap"
+echo "- By Andy Gale <andy@hellofutu.re>"
+echo
+
+COOKBOOK_PATH="`pwd`/cookbooks"
+BERKS_COOKBOOK_PATH="`pwd`/berks-cookbooks"
+
+clean_macstrap() {
+    echo
+    coloured_msg $bldblu "Cleaning macstrap..."
+    coloured_msg $txtred "Note: Even if not installed Chef will be installed and set up to uninstall packages and then uninstalled" 
+ 
+    dependencies
+    setup_chef "clean"
+    run_chef
+
+    echo
+    coloured_msg $bldblu "Cleaning macstrap packages..."
+
+    rm -rf $BERKS_COOKBOOK_PATH
+    rm -rf macbrew.json
+    rm -rf .chef
+    sudo pkgutil --forget com.getchef.pkg.chefdk
+    sudo rm -rf /opt/chefdk
+    ls -la /usr/bin | egrep '/opt/chefdk' | awk '{ print $9 }' | sudo xargs -I % rm -f /usr/bin/%
+    hdiutil detach /Volumes/Chef\ Development\ Kit/
+    rm chefdk.dmg
+
+    echo
+
+    exit
+}
+
+dependencies() {
+
+    if [ ! -f "chefdk.dmg" ]
+    then
+        echo 
+        coloured_msg $bldblu "Downloading ChefDK..."
+        echo
+        curl "https://opscode-omnibus-packages.s3.amazonaws.com/mac_os_x/10.8/x86_64/chefdk-0.3.2-1.dmg" -o "chefdk.dmg"
+
+        echo "- ChefDK downloaded"
+    fi
+
+    set +e
+    MOUNT=`mount | grep /Volumes/Chef\ Development\ Kit`
+    set -e
+
+    if [ -z "$MOUNT" ]
+    then
+        echo
+        coloured_msg $bldblu "Attaching ChefDK .dmg..."
+        echo
+        hdiutil attach chefdk.dmg
+    fi
+
+    if [ -z `which chef` ]
+    then
+        echo
+        coloured_msg $bldblu "Installing ChefDK"
+        echo
+        sudo installer -pkg /Volumes/Chef\ Development\ Kit/chefdk-0.3.2-1.pkg -target /
+    fi    
+}
+
+setup_chef() {
+
+    local action=$1
+
+    if [ ! -d ".chef" ]
+    then
+        mkdir .chef
+    fi
+
+    echo "cookbook_path [ '$BERKS_COOKBOOK_PATH', '$COOKBOOK_PATH' ]" > .chef/solo.rb
+    echo "ssl_verify_mode :verify_peer" >> .chef/solo.rb
+
+    if [ ! -d $BERKS_COOKBOOK_PATH ]
+    then
+        echo
+        coloured_msg $bldblu "Fetching cookbooks with Berkshelf..."
+        echo
+        berks vendor $BERKS_COOKBOOK_PATH
+    fi
+
+    echo "{
+  \"macstrap\": { 
+      \"action\": \"$action\"
+  },
+  \"run_list\": [ \"recipe[macstrap]\", \"recipe[rvm::user_install]\" ]
+}" > macstrap.json
+}
+
+run_chef() {
+    echo
+    coloured_msg $bldblu "Handing over to Chef"
+    echo
+
+    sudo mkdir -p /usr/local
+    sudo chown -R `whoami`:staff /usr/local
+    chef-solo -c .chef/solo.rb -j macstrap.json
+}
+
+if [ ! -z "$1" ] && [ "$1" == "clean" ]
+then
+    clean_macstrap
+fi
+
+dependencies
+setup_chef "install"
+run_chef

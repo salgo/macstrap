@@ -1,1 +1,6 @@
 chefdk.dmg
+.chef
+packages.yml
+macstrap.json
+berks-cookbooks/
+Berksfile.lock
