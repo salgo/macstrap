@@ -80,7 +80,7 @@ dependencies() {
         echo
         coloured_msg $bldblu "Installing ChefDK"
         echo
-        sudo installer -pkg /Volumes/Chef\ Development\ Kit/chefdk-0.3.2-1.pkg -target /
+        sudo installer -pkg /Volumes/Chef\ Development\ Kit/chefdk-0.3.5-1.pkg -target /
     fi    
 }
 
