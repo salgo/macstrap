@@ -58,6 +58,19 @@ if packages && packages.key?('packages')
 end
 
 if packages && packages.key?('pips')
+
+  get_pip = File.join(Chef::Config[:file_cache_path], 'get-pip.py')
+
+  remote_file get_pip do
+    source 'https://bootstrap.pypa.io/get-pip.py'
+    action :create_if_missing
+  end
+
+  execute 'install-pip' do
+    command 'sudo python ' + get_pip
+    not_if 'which pip'
+  end 
+
   packages['pips'].each.each do |p|
     if package_action == :install
       execute 'pip-install-' + p do
