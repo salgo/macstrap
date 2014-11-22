@@ -58,7 +58,7 @@ dependencies() {
         echo 
         coloured_msg $bldblu "Downloading ChefDK..."
         echo
-        curl "https://opscode-omnibus-packages.s3.amazonaws.com/mac_os_x/10.8/x86_64/chefdk-0.3.2-1.dmg" -o "chefdk.dmg"
+        curl "https://opscode-omnibus-packages.s3.amazonaws.com/mac_os_x/10.8/x86_64/chefdk-0.3.5-1.dmg" -o "chefdk.dmg"
 
         echo "- ChefDK downloaded"
     fi
